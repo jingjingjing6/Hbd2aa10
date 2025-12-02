@@ -17,7 +17,6 @@
     --bubble-yellow: rgba(255,230,120,0.95);
     --shadow: 0 6px 18px rgba(0,0,0,0.45);
     --font-sans: "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-    --font-mono: monospace;
   }
   html, body {
     margin:0; padding:0;
@@ -40,25 +39,14 @@
     -webkit-user-drag:none;
     display:block;
   }
-  /* Disable pinch zoom */
-  @viewport {
-    zoom: 1.0;
-  }
-  @-ms-viewport {
-    width: device-width;
-  }
-
   /* ==== Horiz screen forced on mobile ==== */
-  body, html {
-    touch-action: none;
-  }
   #landscape-warning {
     position: fixed;
     inset:0;
     background: var(--bg-black);
     color: var(--text-white);
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 700;
     font-family: var(--font-sans);
     display: flex;
     align-items: center;
@@ -144,22 +132,9 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* we will mask fade from left-bottom to right-top with CSS mask-image */
     mask-image: linear-gradient(135deg, transparent 0%, black 100%);
     -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-    animation: fadeInDiagonal 5s forwards;
-  }
-  @keyframes fadeInDiagonal {
-    0% {
-      mask-image: linear-gradient(135deg, transparent 0%, transparent 0%);
-      -webkit-mask-image: linear-gradient(135deg, transparent 0%, transparent 0%);
-      opacity: 0;
-    }
-    100% {
-      mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-      -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-      opacity: 1;
-    }
+    opacity: 0;
   }
 
   /* ==== 2 image3 section ==== */
@@ -185,13 +160,15 @@
   #loading-section {
     background: var(--bg-white);
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(45, 1fr);
     grid-auto-rows: 40px;
     gap: 4px 6px;
     justify-content: center;
     align-content: center;
     padding: 1rem;
-    max-width: 320px;
+    max-width: 960px;
+    opacity: 0;
+    pointer-events: none;
   }
   .loading-img {
     width: 32px;
@@ -214,7 +191,7 @@
     object-fit: cover;
     mask-image: linear-gradient(135deg, transparent 0%, black 100%);
     -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-    animation: fadeInDiagonal 4s forwards;
+    opacity: 0;
   }
 
   /* ==== 5 bubbles section ==== */
@@ -260,6 +237,13 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+  }
+  #xd-section.active {
+    opacity: 1;
+    pointer-events: auto;
   }
   #xd-section .xd-text {
     user-select:none;
@@ -307,6 +291,18 @@
     opacity: 1;
     pointer-events: auto;
   }
+
+  /* Keyframes for diagonal fade in image2 */
+  @keyframes fadeInDiagonal {
+    0% {
+      mask-position: 100% 0%;
+      opacity: 0;
+    }
+    100% {
+      mask-position: 0% 100%;
+      opacity: 1;
+    }
+  }
 </style>
 </head>
 <body>
@@ -317,10 +313,8 @@
 
 <div id="app">
 
-  <!-- 0 Landscape Warning managed by JS -->
-
   <!-- 1 image2 section -->
-  <section id="image2-section" aria-label="Birthday cover image" role="img" aria-live="polite" aria-atomic="true">
+  <section id="image2-section" aria-label="Birthday cover image" role="img" aria-live="polite" aria-atomic="true" class="active">
     <img src="image2.jpg" alt="Birthday cover" draggable="false" />
   </section>
 
@@ -330,8 +324,8 @@
   </section>
 
   <!-- 3 loading section -->
-  <section id="loading-section" aria-label="Loading animation" role="img" aria-live="polite" aria-atomic="true" style="opacity:0;pointer-events:none;">
-    <!-- 64 spots for loading... arranged as 8 columns x 8 rows grid (can be adjusted) -->
+  <section id="loading-section" aria-label="Loading animation" role="img" aria-live="polite" aria-atomic="true">
+    <!-- Will be populated by JS -->
   </section>
 
   <!-- 4 image1 section -->
@@ -349,7 +343,7 @@
   </section>
 
   <!-- 6 xD section -->
-  <section id="xd-section" aria-live="polite" aria-atomic="true" hidden>
+  <section id="xd-section" aria-live="polite" aria-atomic="true" aria-hidden="true" hidden>
     <div class="xd-text">xD</div>
     <div class="rate-text">Rate</div>
     <div id="rating" role="radiogroup" aria-label="Star rating">
@@ -362,7 +356,7 @@
   </section>
 
   <!-- 8 thank you section -->
-  <section id="thankyou-section" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+  <section id="thankyou-section" role="alert" aria-live="assertive" aria-atomic="true" aria-hidden="true" hidden>
     ☝🏻🤓 thanks for your 5 stars ❤️<br>
     (knew you would do this xD)
   </section>
@@ -371,8 +365,8 @@
 
 <script>
 (() => {
-  const app = document.getElementById('app');
   const landscapeWarning = document.getElementById('landscape-warning');
+  const app = document.getElementById('app');
 
   // Sections
   const sections = {
@@ -385,104 +379,216 @@
     thankyou: document.getElementById('thankyou-section'),
   };
 
-  // Loading images setup for loading section
-  // "loading..." spelled out in 8x8 grid using image4.jpg tiles.
-  // We'll manually map positions for the letters l o a d i n g . . . (total 9 chars including dots)
-  // We'll create a pixel-art style "loading..." shape with image4 repeated at positions forming the letters.
+  // Handle landscape warning display
+  function checkOrientation() {
+    if(window.innerHeight > window.innerWidth) {
+      landscapeWarning.classList.add('visible');
+    } else {
+      landscapeWarning.classList.remove('visible');
+    }
+  }
+  window.addEventListener('resize', checkOrientation);
+  checkOrientation();
 
-  const loadingText = "loading...";
-  // We'll build a simple 8x8 pixel font for each letter with approximate pattern.
-  // For brevity, I define a very simple pattern: each letter block is 5x7 grid of dots.
-  // We arrange the letters horizontally with 1 column spacing between letters.
-  // Each 'pixel' will be one image4.
+  // Animate image2 fade diagonal in (left-bottom to right-top)
+  function animateImage2() {
+    return new Promise(resolve => {
+      const img = sections.image2.querySelector('img');
+      img.style.opacity = '1';
+      img.style.animation = 'fadeInDiagonal 5s forwards';
 
-  // We'll do a very simple pixel font (5x7) for letters l,o,a,d,i,n,g and dot.
-  // For simplicity, define pixel map for each letter (1 = show image, 0 = blank)
-  // Each letter is 5 columns x 7 rows
-  
-  const font5x7 = {
-    "l": [
-      [1,0,0,0,0],
-      [1,0,0,0,0],
-      [1,0,0,0,0],
-      [1,0,0,0,0],
-      [1,0,0,0,0],
-      [1,0,0,0,0],
-      [1,1,1,1,0],
-    ],
-    "o": [
-      [0,1,1,1,0],
-      [1,0,0,0,1],
-      [1,0,0,1,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [0,1,1,1,0],
-    ],
-    "a": [
-      [0,1,1,1,0],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [1,1,1,1,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-    ],
-    "d": [
-      [1,1,1,0,0],
-      [1,0,0,1,0],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [1,0,0,1,0],
-      [1,1,1,0,0],
-    ],
-    "i": [
-      [0,1,0,0,0],
-      [0,0,0,0,0],
-      [0,1,0,0,0],
-      [0,1,0,0,0],
-      [0,1,0,0,0],
-      [0,1,0,0,0],
-      [0,1,0,0,0],
-    ],
-    "n": [
-      [1,0,0,0,1],
-      [1,1,0,0,1],
-      [1,0,1,0,1],
-      [1,0,0,1,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-    ],
-    "g": [
-      [0,1,1,1,0],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [1,0,1,1,1],
-      [1,0,0,0,1],
-      [1,0,0,0,1],
-      [0,1,1,1,0],
-    ],
-    ".": [
-      [0,0,0,0,0],
-      [0,0,0,0,0],
-      [0,0,0,0,0],
-      [0,0,0,0,0],
-      [0,0,0,0,0],
-      [0,1,1,0,0],
-      [0,1,1,0,0],
-    ],
-  };
+      setTimeout(() => {
+        resolve();
+      }, 5200);
+    });
+  }
 
-  // Each letter width: 5 columns, 7 rows
-  // Spacing between letters: 1 column (blank)
-  // We will generate the grid dynamically into #loading-section container.
+  // Animate image3 fade in/out on right side
+  function animateImage3() {
+    return new Promise(resolve => {
+      const img = sections.image3.querySelector('img');
+      sections.image3.classList.add('active');
+      img.style.opacity = '0';
+      // fade in 2s
+      setTimeout(() => {
+        img.classList.add('visible');
+      }, 50);
 
-  const loadingSection = sections.loading;
+      // show 3s then fade out 2s
+      setTimeout(() => {
+        img.classList.remove('visible');
+      }, 3200);
 
-  // Calculate total columns needed
-  const letters = loadingText.split('');
-  const letterWidth = 5;
-  const letterHeight = 7;
-  const
+      // After fade out, hide section
+      setTimeout(() => {
+        sections.image3.classList.remove('active');
+        resolve();
+      }, 5200);
+    });
+  }
+
+  // Loading section: create "loading..." formed by repeated image4 tiles
+  // Because image4 is missing, let's simulate with colored squares as placeholders
+  // We'll create a simple text animation with colored squares
+  function createLoadingGrid() {
+    const loadingSection = sections.loading;
+    loadingSection.innerHTML = '';
+    loadingSection.classList.add('active');
+    loadingSection.style.opacity = '1';
+    const text = 'loading...';
+    const totalCols = text.length * 6; // 5 cols +1 space per letter approx.
+
+    loadingSection.style.gridTemplateColumns = `repeat(${totalCols}, 32px)`;
+
+    // For simplicity, create colored blocks for each letter (no real font mapping)
+    for (let i = 0; i < totalCols; i++) {
+      const div = document.createElement('div');
+      div.classList.add('loading-img');
+      div.style.backgroundColor = `hsl(${(i*30)%360}, 70%, 60%)`;
+      loadingSection.appendChild(div);
+      setTimeout(() => {
+        div.classList.add('visible');
+      }, i * 80);
+    }
+  }
+
+  function animateLoading() {
+    return new Promise(resolve => {
+      createLoadingGrid();
+      // Show loading for 5 seconds
+      setTimeout(() => {
+        sections.loading.style.opacity = '0';
+        sections.loading.classList.remove('active');
+        setTimeout(() => {
+          resolve();
+        }, 1000);
+      }, 5000);
+    });
+  }
+
+  // Animate image1 fade diagonal in (right-top to left-bottom)
+  function animateImage1() {
+    return new Promise(resolve => {
+      const img = sections.image1.querySelector('img');
+      sections.image1.classList.add('active');
+      img.style.opacity = '0';
+      img.style.transition = 'opacity 4s ease';
+      setTimeout(() => {
+        img.style.opacity = '1';
+      }, 50);
+      setTimeout(() => {
+        resolve();
+      }, 4200);
+    });
+  }
+
+  // Animate bubbles fade in one by one with color pattern
+  function animateBubbles() {
+    return new Promise(resolve => {
+      const bubbles = [...sections.bubbles.querySelectorAll('.bubble')];
+      let i = 0;
+
+      function showNextBubble() {
+        if (i >= bubbles.length) {
+          resolve();
+          return;
+        }
+        bubbles[i].classList.add('visible');
+        i++;
+        setTimeout(showNextBubble, 1500);
+      }
+      showNextBubble();
+    });
+  }
+
+  // Show xd section with rating stars
+  function showXDSection() {
+    return new Promise(resolve => {
+      sections.xd.hidden = false;
+      sections.xd.setAttribute('aria-hidden', 'false');
+      sections.xd.classList.add('active');
+
+      const stars = [...sections.xd.querySelectorAll('.star')];
+      let selected = 0;
+
+      stars.forEach((star, index) => {
+        star.addEventListener('mouseover', () => {
+          stars.forEach((s,i) => {
+            s.classList.toggle('hover', i <= index);
+          });
+        });
+        star.addEventListener('mouseout', () => {
+          stars.forEach((s,i) => {
+            s.classList.remove('hover');
+          });
+        });
+        star.addEventListener('click', () => {
+          selected = index + 1;
+          stars.forEach((s,i) => {
+            s.classList.toggle('selected', i < selected);
+            s.setAttribute('aria-checked', i < selected ? 'true' : 'false');
+            s.setAttribute('tabindex', i === selected - 1 ? '0' : '-1');
+          });
+          // Show thank you section after rating
+          showThankYouSection().then(() => {
+            resolve();
+          });
+        });
+        star.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            star.click();
+          }
+          if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            let next = index + 1;
+            if (next >= stars.length) next = 0;
+            stars[next].focus();
+          }
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            let prev = index -1;
+            if (prev < 0) prev = stars.length -1;
+            stars[prev].focus();
+          }
+        });
+      });
+    });
+  }
+
+  // Show thank you message after rating
+  function showThankYouSection() {
+    return new Promise(resolve => {
+      sections.xd.classList.remove('active');
+      sections.xd.hidden = true;
+      sections.xd.setAttribute('aria-hidden', 'true');
+
+      sections.thankyou.hidden = false;
+      sections.thankyou.setAttribute('aria-hidden', 'false');
+      sections.thankyou.classList.add('visible');
+
+      setTimeout(() => {
+        resolve();
+      }, 4000);
+    });
+  }
+
+  // Main animation flow
+  async function main() {
+    // Start with image2 section visible
+    await animateImage2();
+    await animateImage3();
+    await animateLoading();
+    await animateImage1();
+    await animateBubbles();
+    await showXDSection();
+    // Thank you section shown in showXDSection promise chain
+  }
+
+  main();
+
+})();
+</script>
+
+</body>
+</html>
