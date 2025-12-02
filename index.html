@@ -530,25 +530,8 @@
 
   <script>
 (function(){
-  // 检查是否为横屏模式
-  function checkOrientation() {
-    return window.innerWidth > window.innerHeight;
-  }
-
-  // 如果不是横屏，显示旋转提示
-  if (!checkOrientation()) {
-    document.querySelector('.rotate-notice').style.display = 'flex';
-    // 监听方向变化
-    window.addEventListener('resize', function() {
-      if (checkOrientation()) {
-        document.querySelector('.rotate-notice').style.display = 'none';
-        startAnimation();
-      }
-    });
-  } else {
-    // 已经是横屏，直接开始动画
-    startAnimation();
-  }
+ // 直接开始动画，无需检查横屏
+ startAnimation();
 
   // 页面管理
   const pages = document.querySelectorAll('.page-container');
@@ -713,4 +696,5 @@
 </script>
 </body>
 </html>
+
 
