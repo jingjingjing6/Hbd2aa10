@@ -2,593 +2,714 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
 <title>Happy Birthday — Ahmed</title>
 <style>
-  /* === Reset & root === */
-  :root {
-    --white: #fff;
-    --black: #000;
-    --bg-white: #fff;
-    --bg-black: #000;
-    --text-black: #111;
-    --text-white: #fff;
-    --bubble-white: rgba(255,255,255,0.95);
-    --bubble-yellow: rgba(255,230,120,0.95);
-    --shadow: 0 6px 18px rgba(0,0,0,0.45);
-    --font-sans: "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  }
-  html, body {
-    margin:0; padding:0;
+  :root{  
+    --bg-color:#000;  
+    --bubble-white: rgba(255,255,255,0.95);  
+    --bubble-yellow: rgba(255,230,120,0.95);  
+    --text-color:#111;  
+    --shadow: 0 6px 18px rgba(0,0,0,0.45);  
+    --font-sans: "Helvetica Neue", Arial, "Noto Sans", sans-serif;  
+  }  
+  html,body{
     height:100%;
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    margin:0;
+    background:var(--bg-color);
+    font-family:var(--font-sans);
     overflow: hidden;
   }
-  body {
-    background: var(--bg-white);
-    color: var(--text-black);
-  }
-  img {
-    -webkit-user-select:none;
-    user-select:none;
-    -webkit-touch-callout:none;
-    pointer-events:none;
-    user-drag:none;
-    -webkit-user-drag:none;
-    display:block;
-  }
-  /* ==== Horiz screen forced on mobile ==== */
-  #landscape-warning {
+
+  /* 旋转提示 */
+  .rotate-notice {
     position: fixed;
-    inset:0;
-    background: var(--bg-black);
-    color: var(--text-white);
-    font-size: 2rem;
-    font-weight: 700;
-    font-family: var(--font-sans);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    color: black;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 1000;
     text-align: center;
-    padding: 1rem;
-    z-index: 10000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+    padding: 20px;
+    box-sizing: border-box;
   }
-  #landscape-warning.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  /* We rotate the main #app container on portrait mobiles */
-  #app {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-    overflow: hidden;
-    background: var(--bg-white);
-    transition: background 0.3s ease;
-  }
-  /* on portrait phones, rotate app -90deg to simulate horizontal */
-  @media (orientation: portrait) and (max-width: 768px) {
-    #app {
-      width: 100vh;
-      height: 100vw;
-      transform: rotate(-90deg) translateX(calc(-100vh + 100vw));
-      transform-origin: top left;
-      position: absolute;
-      top: 0; left: 0;
-      background: var(--bg-white);
+
+  @media (orientation: landscape) {
+    .rotate-notice {
+      display: none;
     }
   }
 
-  /* === Common fade in/out animation === */
-  .fade-in {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transition: opacity 1s ease;
-  }
-  .fade-out {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: opacity 1s ease;
-  }
-  .hidden {
+  /* 页面容器 */
+  .page-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
     opacity: 0;
-    pointer-events: none;
+    transition: opacity 0.8s ease;
   }
 
-  /* === Sections: full screen flex container === */
-  section {
+  .page-container.active {
+    opacity: 1;
+  }
+
+  /* 页面1: Image1动画 */
+  .page-1 {
     position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    opacity: 0;
-    pointer-events: none;
-  }
-  section.active {
-    opacity: 1;
-    pointer-events: auto;
-    transition: opacity 1s ease;
-  }
-
-  /* ==== 0 Landscape Warning ==== */
-  #landscape-warning {
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
-
-  /* ==== 1 image2 section ==== */
-  #image2-section {
-    background: var(--bg-white);
-  }
-  #image2-section img {
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-    -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-    opacity: 0;
+    background: white;
+    overflow: hidden;
   }
 
-  /* ==== 2 image3 section ==== */
-  #image3-section {
-    background: var(--bg-white);
-    position: relative;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-  #image3-section img {
-    max-height: 80vh;
-    max-width: 25vw;
-    object-fit: contain;
-    opacity: 0;
-    transition: opacity 2s ease;
-  }
-  #image3-section img.visible {
-    opacity: 1;
-  }
-
-  /* ==== 3 loading section ==== */
-  #loading-section {
-    background: var(--bg-white);
-    display: grid;
-    grid-template-columns: repeat(45, 1fr);
-    grid-auto-rows: 40px;
-    gap: 4px 6px;
-    justify-content: center;
-    align-content: center;
-    padding: 1rem;
-    max-width: 960px;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .loading-img {
-    width: 32px;
-    height: 40px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  .loading-img.visible {
-    opacity: 1;
-  }
-
-  /* ==== 4 image1 section ==== */
-  #image1-section {
-    background: var(--bg-white);
-    position: relative;
-  }
-  #image1-section img {
+  .image1-container {
+    position: absolute;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+  }
+
+  .image1-animated {
+    position: absolute;
+    left: -50%;
+    bottom: -50%;
+    width: 200%;
+    height: 200%;
     object-fit: cover;
-    mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-    -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
-    opacity: 0;
+    object-position: center;
+    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+    animation: image1Reveal 3s ease-in-out forwards;
+    animation-delay: 0.5s;
   }
 
-  /* ==== 5 bubbles section ==== */
-  #bubbles-section {
-    position: relative;
-    background: var(--bg-white);
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding-left: 50vw;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-width: 45vw;
-    margin-left: auto;
-  }
-  .bubble {
-    background: var(--bubble-white);
-    box-shadow: var(--shadow);
-    border-radius: 18px;
-    padding: 12px 16px;
-    font-size: 1rem;
-    line-height: 1.3;
-    color: var(--text-black);
-    opacity: 0;
-    transform: translateX(-20px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-  .bubble.yellow {
-    background: var(--bubble-yellow);
-  }
-  .bubble.visible {
-    opacity: 1;
-    transform: translateX(0);
+  @keyframes image1Reveal {
+    0% {
+      clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+    }
+    100% {
+      clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+    }
   }
 
-  /* ==== 6 xD section ==== */
-  #xd-section {
-    background: var(--bg-black);
-    color: var(--text-white);
-    font-family: 'Comic Sans MS', cursive, sans-serif;
-    font-size: 12vw;
+  .image3-arrow {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 80px;
+    height: 80px;
+    opacity: 0;
+    animation: arrowAppear 1s ease-out forwards;
+    animation-delay: 3.5s;
+  }
+
+  @keyframes arrowAppear {
+    0% {
+      opacity: 0;
+      transform: translateY(-50%) translateX(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(-50%) translateX(0);
+    }
+  }
+
+  /* 页面2: Loading页面 */
+  .page-2 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     opacity: 0;
-    pointer-events: none;
-    transition: opacity 1s ease;
   }
-  #xd-section.active {
+
+  .page-2.active {
     opacity: 1;
-    pointer-events: auto;
   }
-  #xd-section .xd-text {
-    user-select:none;
+
+  .loading-text {
+    font-size: 32px;
+    font-weight: bold;
+    color: black;
+    margin-bottom: 40px;
+    letter-spacing: 8px;
+    position: relative;
+    height: 50px;
   }
-  #xd-section .rate-text {
-    margin-top: 1rem;
-    font-size: 2rem;
-    font-weight: 600;
-  }
-  /* ==== 7 rating stars ==== */
-  #rating {
-    margin-top: 1rem;
+
+  .loading-dots {
     display: flex;
     gap: 10px;
   }
-  .star {
-    font-size: 3rem;
-    cursor: pointer;
-    color: #444;
-    user-select:none;
-    transition: color 0.3s ease;
+
+  .loading-dot {
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+    animation: dotBlink 1.5s infinite;
   }
-  .star.hover, .star.selected {
-    color: gold;
-    text-shadow: 0 0 5px #ffcc33;
+
+  .loading-dot:nth-child(1) { animation-delay: 0s; }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+  .loading-dot:nth-child(4) { animation-delay: 0.6s; }
+  .loading-dot:nth-child(5) { animation-delay: 0.8s; }
+  .loading-dot:nth-child(6) { animation-delay: 1.0s; }
+
+  @keyframes dotBlink {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
   }
-  /* ==== 8 thank you section ==== */
-  #thankyou-section {
+
+  .loading-letters {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 30px;
+  }
+
+  .letter-container {
+    width: 40px;
+    height: 60px;
+    position: relative;
+  }
+
+  .letter-dot {
     position: absolute;
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+    transform: scale(0);
+    animation: letterAppear 0.5s forwards;
+  }
+
+  /* 为每个字母设置不同的延迟 */
+  .letter-container:nth-child(1) .letter-dot { animation-delay: 0.2s; }
+  .letter-container:nth-child(2) .letter-dot { animation-delay: 0.4s; }
+  .letter-container:nth-child(3) .letter-dot { animation-delay: 0.6s; }
+  .letter-container:nth-child(4) .letter-dot { animation-delay: 0.8s; }
+  .letter-container:nth-child(5) .letter-dot { animation-delay: 1.0s; }
+  .letter-container:nth-child(6) .letter-dot { animation-delay: 1.2s; }
+  .letter-container:nth-child(7) .letter-dot { animation-delay: 1.4s; }
+  .letter-container:nth-child(8) .letter-dot { animation-delay: 1.6s; }
+  .letter-container:nth-child(9) .letter-dot { animation-delay: 1.8s; }
+  .letter-container:nth-child(10) .letter-dot { animation-delay: 2.0s; }
+
+  @keyframes letterAppear {
+    0% {
+      opacity: 0;
+      transform: scale(0) rotate(0deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(360deg);
+    }
+  }
+
+  /* 页面3: Image2动画 */
+  .page-3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    overflow: hidden;
+  }
+
+  .image2-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .image2-animated {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    clip-path: polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%);
+    animation: image2Reveal 2s ease-in-out forwards;
+  }
+
+  @keyframes image2Reveal {
+    0% {
+      clip-path: polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%);
+    }
+    100% {
+      clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+    }
+  }
+
+  /* 气泡消息样式 */
+  .bubble-wrap{
+    position:absolute;
+    z-index:5;
     inset:0;
-    background: var(--bg-black);
-    color: var(--text-white);
-    font-family: var(--font-sans);
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding:6vh 6vw;
+    pointer-events:none;
+  }
+  .bubble{
+    max-width:92%;
+    padding:14px 16px;
+    border-radius:18px;
+    margin:8px 0;
+    box-shadow:var(--shadow);
+    font-size:clamp(16px,4.2vw,20px);
+    line-height:1.25;
+    color:var(--text-color);
+    opacity:0; 
+    transform:translateY(10px) scale(.99);
+    transition:opacity .5s ease, transform .5s ease;
+    pointer-events:auto;
+    backdrop-filter: blur(2px);
+  }
+  .bubble.show{
+    opacity:1; 
+    transform:translateY(0) scale(1);
+  }
+  .bubble.white{
+    background: var(--bubble-white);
+  }
+  .bubble.yellow{
+    background: var(--bubble-yellow);
+  }
+
+  /* 页面4: xD页面 */
+  .page-4 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
-    text-align: center;
-    padding: 1rem;
     opacity: 0;
-    pointer-events: none;
-    transition: opacity 1s ease;
   }
-  #thankyou-section.visible {
+
+  .page-4.active {
+    opacity: 1;
+  }
+
+  .xd-text {
+    color: white;
+    font-size: 120px;
+    font-weight: bold;
+    font-family: monospace;
+    opacity: 0;
+    transform: scale(0.5);
+    animation: xdAppear 1s forwards;
+  }
+
+  @keyframes xdAppear {
+    0% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* 页面5: 评分页面 */
+  .page-5 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  .page-5.active {
+    opacity: 1;
+  }
+
+  .rating-title {
+    font-size: 28px;
+    margin-bottom: 40px;
+    color: #333;
+    text-align: center;
+  }
+
+  .stars-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .star {
+    font-size: 50px;
+    cursor: pointer;
+    color: #ddd;
+    transition: all 0.2s ease;
+  }
+
+  .star:hover {
+    transform: scale(1.2);
+  }
+
+  .star.selected {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+
+  .rating-text {
+    font-size: 18px;
+    color: #666;
+    margin-top: 10px;
+    height: 24px;
+  }
+
+  .thanks-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    z-index: 100;
+    pointer-events: none;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .thanks-message.active {
     opacity: 1;
     pointer-events: auto;
   }
 
-  /* Keyframes for diagonal fade in image2 */
-  @keyframes fadeInDiagonal {
-    0% {
-      mask-position: 100% 0%;
-      opacity: 0;
-    }
-    100% {
-      mask-position: 0% 100%;
-      opacity: 1;
-    }
+  .thanks-message h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+
+  .thanks-message p {
+    font-size: 24px;
+    line-height: 1.4;
+  }
+
+  /* 进度指示器 */
+  .progress-dots {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+  }
+
+  .progress-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .progress-dot.active {
+    background: #4a90e2;
+    transform: scale(1.2);
   }
 </style>
 </head>
 <body>
+  <!-- 旋转提示 -->
+  <div class="rotate-notice">
+    Please rotate your phone to landscape mode
+  </div>
 
-<div id="landscape-warning" role="alert" aria-live="assertive">
-  Please rotate your device to landscape mode for the best experience.
-</div>
-
-<div id="app">
-
-  <!-- 1 image2 section -->
-  <section id="image2-section" aria-label="Birthday cover image" role="img" aria-live="polite" aria-atomic="true" class="active">
-    <img src="image2.jpg" alt="Birthday cover" draggable="false" />
-  </section>
-
-  <!-- 2 image3 section -->
-  <section id="image3-section" aria-label="Arrow indicator" role="img" aria-live="polite" aria-atomic="true">
-    <img src="image3.png" alt="Arrow pointing right" draggable="false" />
-  </section>
-
-  <!-- 3 loading section -->
-  <section id="loading-section" aria-label="Loading animation" role="img" aria-live="polite" aria-atomic="true">
-    <!-- Will be populated by JS -->
-  </section>
-
-  <!-- 4 image1 section -->
-  <section id="image1-section" aria-label="Background image" role="img" aria-live="polite" aria-atomic="true">
-    <img src="image1.jpg" alt="Background image" draggable="false" />
-  </section>
-
-  <!-- 5 bubbles section -->
-  <section id="bubbles-section" aria-live="polite" aria-atomic="true" aria-label="Messages">
-    <div class="bubble white">Heyyy Ahmed, happy birthday to you! 🥳</div>
-    <div class="bubble yellow">If I could give you something today, it would be a quiet moment where nothing hurts and presses you.</div>
-    <div class="bubble white">I see how much you’re carrying, and I respect you for that!</div>
-    <div class="bubble yellow">I hope this year brings you more ease so that you can breathe. 🫂</div>
-    <div class="bubble white">Remember! You can always be yourself with me! Lots of love! 🥰</div>
-  </section>
-
-  <!-- 6 xD section -->
-  <section id="xd-section" aria-live="polite" aria-atomic="true" aria-hidden="true" hidden>
-    <div class="xd-text">xD</div>
-    <div class="rate-text">Rate</div>
-    <div id="rating" role="radiogroup" aria-label="Star rating">
-      <span class="star" role="radio" aria-checked="false" tabindex="0" data-value="1" aria-label="1 star">★</span>
-      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="2" aria-label="2 stars">★</span>
-      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="3" aria-label="3 stars">★</span>
-      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="4" aria-label="4 stars">★</span>
-      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="5" aria-label="5 stars">★</span>
+  <!-- 页面1: Image1 + Image3 -->
+  <div class="page-container page-1 active">
+    <div class="image1-container">
+      < img class="image1-animated" id="image1" src="image1.jpg" alt="Image 1">
     </div>
-  </section>
+    < img class="image3-arrow" id="image3" src="image3.png" alt="Arrow">
+    
+    <!-- 气泡消息 -->
+    <div class="bubble-wrap" id="bubbleWrap" aria-hidden="true">  
+      <div class="bubble white" id="b1">Heyyy Ahmed, happy birthday to you!🥳</div>  
+      <div class="bubble yellow" id="b2">If I could give you something today, it would be a quiet moment where nothing hurts and presses you</div>  
+      <div class="bubble white" id="b3">I see how much you're carrying, and I respect you for that!</div>  
+      <div class="bubble yellow" id="b4">I hope this year brings you more ease so that you can breathe. 🫂</div>  
+      <div class="bubble white" id="b5">Remember! You can always be yourself with me! Lots of love!🥰</div>  
+    </div>
+  </div>
 
-  <!-- 8 thank you section -->
-  <section id="thankyou-section" role="alert" aria-live="assertive" aria-atomic="true" aria-hidden="true" hidden>
-    ☝🏻🤓 thanks for your 5 stars ❤️<br>
-    (knew you would do this xD)
-  </section>
+  <!-- 页面2: Loading -->
+  <div class="page-container page-2" id="loadingPage">
+    <div class="loading-letters" id="loadingLetters">
+      <!-- Loading字母将通过JavaScript动态生成 -->
+    </div>
+    <div class="loading-text">loading</div>
+    <div class="loading-dots">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+  </div>
 
-</div>
+  <!-- 页面3: Image2 -->
+  <div class="page-container page-3">
+    <div class="image2-container">
+      < img class="image2-animated" id="image2" src="image2.jpg" alt="Image 2">
+    </div>
+  </div>
 
-<script>
-(() => {
-  const landscapeWarning = document.getElementById('landscape-warning');
-  const app = document.getElementById('app');
+  <!-- 页面4: xD -->
+  <div class="page-container page-4">
+    <div class="xd-text">xD</div>
+  </div>
 
-  // Sections
-  const sections = {
-    image2: document.getElementById('image2-section'),
-    image3: document.getElementById('image3-section'),
-    loading: document.getElementById('loading-section'),
-    image1: document.getElementById('image1-section'),
-    bubbles: document.getElementById('bubbles-section'),
-    xd: document.getElementById('xd-section'),
-    thankyou: document.getElementById('thankyou-section'),
-  };
+  <!-- 页面5: 评分页面 -->
+  <div class="page-container page-5">
+    <h1 class="rating-title">Rate your experience</h1>
+    <div class="stars-container">
+      <div class="star" data-rating="1">⭐</div>
+      <div class="star" data-rating="2">⭐</div>
+      <div class="star" data-rating="3">⭐</div>
+      <div class="star" data-rating="4">⭐</div>
+      <div class="star" data-rating="5">⭐</div>
+    </div>
+    <div class="rating-text" id="ratingText"></div>
+  </div>
 
-  // Handle landscape warning display
+  <!-- 五星感谢消息 -->
+  <div class="thanks-message" id="thanksMessage">
+    <h1>Thanks for your five stars</h1>
+    <p>knew you would do this xD</p >
+  </div>
+
+  <!-- 进度指示器 -->
+  <div class="progress-dots" id="progressDots">
+    <div class="progress-dot active" data-page="1"></div>
+    <div class="progress-dot" data-page="2"></div>
+    <div class="progress-dot" data-page="3"></div>
+    <div class="progress-dot" data-page="4"></div>
+    <div class="progress-dot" data-page="5"></div>
+  </div>
+
+  <script>
+(function(){
+  // 检查是否为横屏模式
   function checkOrientation() {
-    if(window.innerHeight > window.innerWidth) {
-      landscapeWarning.classList.add('visible');
-    } else {
-      landscapeWarning.classList.remove('visible');
-    }
-  }
-  window.addEventListener('resize', checkOrientation);
-  checkOrientation();
-
-  // Animate image2 fade diagonal in (left-bottom to right-top)
-  function animateImage2() {
-    return new Promise(resolve => {
-      const img = sections.image2.querySelector('img');
-      img.style.opacity = '1';
-      img.style.animation = 'fadeInDiagonal 5s forwards';
-
-      setTimeout(() => {
-        resolve();
-      }, 5200);
-    });
+    return window.innerWidth > window.innerHeight;
   }
 
-  // Animate image3 fade in/out on right side
-  function animateImage3() {
-    return new Promise(resolve => {
-      const img = sections.image3.querySelector('img');
-      sections.image3.classList.add('active');
-      img.style.opacity = '0';
-      // fade in 2s
-      setTimeout(() => {
-        img.classList.add('visible');
-      }, 50);
-
-      // show 3s then fade out 2s
-      setTimeout(() => {
-        img.classList.remove('visible');
-      }, 3200);
-
-      // After fade out, hide section
-      setTimeout(() => {
-        sections.image3.classList.remove('active');
-        resolve();
-      }, 5200);
-    });
-  }
-
-  // Loading section: create "loading..." formed by repeated image4 tiles
-  // Because image4 is missing, let's simulate with colored squares as placeholders
-  // We'll create a simple text animation with colored squares
-  function createLoadingGrid() {
-    const loadingSection = sections.loading;
-    loadingSection.innerHTML = '';
-    loadingSection.classList.add('active');
-    loadingSection.style.opacity = '1';
-    const text = 'loading...';
-    const totalCols = text.length * 6; // 5 cols +1 space per letter approx.
-
-    loadingSection.style.gridTemplateColumns = `repeat(${totalCols}, 32px)`;
-
-    // For simplicity, create colored blocks for each letter (no real font mapping)
-    for (let i = 0; i < totalCols; i++) {
-      const div = document.createElement('div');
-      div.classList.add('loading-img');
-      div.style.backgroundColor = `hsl(${(i*30)%360}, 70%, 60%)`;
-      loadingSection.appendChild(div);
-      setTimeout(() => {
-        div.classList.add('visible');
-      }, i * 80);
-    }
-  }
-
-  function animateLoading() {
-    return new Promise(resolve => {
-      createLoadingGrid();
-      // Show loading for 5 seconds
-      setTimeout(() => {
-        sections.loading.style.opacity = '0';
-        sections.loading.classList.remove('active');
-        setTimeout(() => {
-          resolve();
-        }, 1000);
-      }, 5000);
-    });
-  }
-
-  // Animate image1 fade diagonal in (right-top to left-bottom)
-  function animateImage1() {
-    return new Promise(resolve => {
-      const img = sections.image1.querySelector('img');
-      sections.image1.classList.add('active');
-      img.style.opacity = '0';
-      img.style.transition = 'opacity 4s ease';
-      setTimeout(() => {
-        img.style.opacity = '1';
-      }, 50);
-      setTimeout(() => {
-        resolve();
-      }, 4200);
-    });
-  }
-
-  // Animate bubbles fade in one by one with color pattern
-  function animateBubbles() {
-    return new Promise(resolve => {
-      const bubbles = [...sections.bubbles.querySelectorAll('.bubble')];
-      let i = 0;
-
-      function showNextBubble() {
-        if (i >= bubbles.length) {
-          resolve();
-          return;
-        }
-        bubbles[i].classList.add('visible');
-        i++;
-        setTimeout(showNextBubble, 1500);
+  // 如果不是横屏，显示旋转提示
+  if (!checkOrientation()) {
+    document.querySelector('.rotate-notice').style.display = 'flex';
+    // 监听方向变化
+    window.addEventListener('resize', function() {
+      if (checkOrientation()) {
+        document.querySelector('.rotate-notice').style.display = 'none';
+        startAnimation();
       }
-      showNextBubble();
     });
+  } else {
+    // 已经是横屏，直接开始动画
+    startAnimation();
   }
 
-  // Show xd section with rating stars
-  function showXDSection() {
-    return new Promise(resolve => {
-      sections.xd.hidden = false;
-      sections.xd.setAttribute('aria-hidden', 'false');
-      sections.xd.classList.add('active');
+  // 页面管理
+  const pages = document.querySelectorAll('.page-container');
+  const progressDots = document.querySelectorAll('.progress-dot');
+  let currentPage = 1;
+  
+  function showPage(pageNumber) {
+    // 隐藏所有页面
+    pages.forEach(page => {
+      page.classList.remove('active');
+    });
+    
+    // 显示指定页面
+    const targetPage = document.querySelector(`.page-${pageNumber}`);
+    if (targetPage) {
+      targetPage.classList.add('active');
+    }
+    
+    // 更新进度点
+    progressDots.forEach(dot => {
+      dot.classList.remove('active');
+      if (parseInt(dot.dataset.page) === pageNumber) {
+        dot.classList.add('active');
+      }
+    });
+    
+    currentPage = pageNumber;
+  }
 
-      const stars = [...sections.xd.querySelectorAll('.star')];
-      let selected = 0;
+  // 创建loading字母
+  function createLoadingLetters() {
+    const lettersContainer = document.getElementById('loadingLetters');
+    const word = 'loading';
+    
+    for (let i = 0; i < word.length; i++) {
+      const letterContainer = document.createElement('div');
+      letterContainer.className = 'letter-container';
+      
+      // 为每个字母创建多个image4（人头像）
+      // 这里我们创建3-5个随机位置的人头组成每个字母
+      const letter = word[i];
+      const dotCount = letter === 'o' || letter === 'g' ? 5 : 3;
+      
+      for (let j = 0; j < dotCount; j++) {
+        const dot = document.createElement('img');
+        dot.className = 'letter-dot';
+        dot.src = 'image4.png';
+        dot.alt = `Loading dot ${i}-${j}`;
+        dot.style.width = '40px';
+        dot.style.height = '40px';
+        dot.style.position = 'absolute';
+        
+        // 随机位置（在40x40的容器内）
+        const x = Math.random() * 20;
+        const y = Math.random() * 20;
+        dot.style.left = `${x}px`;
+        dot.style.top = `${y}px`;
+        
+        letterContainer.appendChild(dot);
+      }
+      
+      lettersContainer.appendChild(letterContainer);
+    }
+  }
 
-      stars.forEach((star, index) => {
-        star.addEventListener('mouseover', () => {
-          stars.forEach((s,i) => {
-            s.classList.toggle('hover', i <= index);
-          });
-        });
-        star.addEventListener('mouseout', () => {
-          stars.forEach((s,i) => {
-            s.classList.remove('hover');
-          });
-        });
-        star.addEventListener('click', () => {
-          selected = index + 1;
-          stars.forEach((s,i) => {
-            s.classList.toggle('selected', i < selected);
-            s.setAttribute('aria-checked', i < selected ? 'true' : 'false');
-            s.setAttribute('tabindex', i === selected - 1 ? '0' : '-1');
-          });
-          // Show thank you section after rating
-          showThankYouSection().then(() => {
-            resolve();
-          });
-        });
-        star.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            star.click();
-          }
-          if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            let next = index + 1;
-            if (next >= stars.length) next = 0;
-            stars[next].focus();
-          }
-          if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            let prev = index -1;
-            if (prev < 0) prev = stars.length -1;
-            stars[prev].focus();
+  // 初始化评分功能
+  function initRating() {
+    const stars = document.querySelectorAll('.star');
+    const ratingText = document.getElementById('ratingText');
+    const thanksMessage = document.getElementById('thanksMessage');
+    
+    stars.forEach(star => {
+      star.addEventListener('click', function() {
+        const rating = parseInt(this.dataset.rating);
+        
+        // 更新星星选择状态
+        stars.forEach((s, index) => {
+          if (index < rating) {
+            s.classList.add('selected');
+          } else {
+            s.classList.remove('selected');
           }
         });
+        
+        // 更新评分文本
+        const texts = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
+        ratingText.textContent = texts[rating];
+        
+        // 如果是5星，显示感谢消息
+        if (rating === 5) {
+          setTimeout(() => {
+            thanksMessage.classList.add('active');
+          }, 800);
+        }
       });
     });
   }
 
-  // Show thank you message after rating
-  function showThankYouSection() {
-    return new Promise(resolve => {
-      sections.xd.classList.remove('active');
-      sections.xd.hidden = true;
-      sections.xd.setAttribute('aria-hidden', 'true');
-
-      sections.thankyou.hidden = false;
-      sections.thankyou.setAttribute('aria-hidden', 'false');
-      sections.thankyou.classList.add('visible');
-
+  // 气泡消息动画
+  function startBubbleAnimation() {
+    const bubbles = document.querySelectorAll('.bubble');
+    let i = 0;
+    
+    function showNextBubble() {
+      if (i >= bubbles.length) return;
+      
+      const bubble = bubbles[i];
+      bubble.classList.add('show');
+      
       setTimeout(() => {
-        resolve();
+        if (i < bubbles.length - 1) {
+          bubble.classList.remove('show');
+        }
+        i++;
+        setTimeout(showNextBubble, 200);
       }, 4000);
-    });
+    }
+    
+    // 延迟开始气泡动画
+    setTimeout(showNextBubble, 1000);
   }
 
-  // Main animation flow
-  async function main() {
-    // Start with image2 section visible
-    await animateImage2();
-    await animateImage3();
-    await animateLoading();
-    await animateImage1();
-    await animateBubbles();
-    await showXDSection();
-    // Thank you section shown in showXDSection promise chain
+  // 主动画流程
+  function startAnimation() {
+    createLoadingLetters();
+    initRating();
+    startBubbleAnimation();
+    
+    // 页面1：Image1 + 气泡消息（8秒）
+    setTimeout(() => {
+      showPage(2); // 切换到loading页面
+    }, 8000);
+    
+    // 页面2：Loading页面（3秒）
+    setTimeout(() => {
+      showPage(3); // 切换到Image2页面
+    }, 11000);
+    
+    // 页面3：Image2动画（4秒）
+    setTimeout(() => {
+      showPage(4); // 切换到xD页面
+    }, 15000);
+    
+    // 页面4：xD页面（2秒）
+    setTimeout(() => {
+      showPage(5); // 切换到评分页面
+    }, 17000);
   }
 
-  main();
+  // 点击页面可以提前进入下一页面（用于测试）
+  document.addEventListener('click', function() {
+    if (currentPage < 5) {
+      showPage(currentPage + 1);
+    }
+  });
 
+  // 阻止图片拖动
+  document.querySelectorAll('img').forEach(img => {
+    img.ondragstart = () => false;
+  });
 })();
 </script>
-
 </body>
 </html>
