@@ -1,658 +1,218 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Happy Birthday — Ahmed</title>
-  <style>
-    :root {
-      --bg-color: #000;
-      --bubble-white: rgba(255,255,255,0.95);
-      --bubble-yellow: rgba(255,230,120,0.95);
-      --text-color: #111;
-      --shadow: 0 6px 18px rgba(0,0,0,0.45);
-      --font-sans: "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-    }
-    
-    /* 强制横屏 */
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #000;
-      font-family: var(--font-sans);
-    }
-    
-    /* 旋转提示页面 */
-    #rotatePrompt {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      color: black;
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      transition: opacity 0.5s ease;
-    }
-    
-    /* 强制横屏的容器 */
-    .landscape-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vh;  /* 交换宽高实现横屏 */
-      height: 100vw;
-      transform-origin: top left;
-      transform: rotate(90deg) translateY(-100vh);
-      overflow: hidden;
-      background: white;
-      display: none;
-    }
-    
-    /* 各个页面样式 */
-    .page {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-    }
-    
-    .page.active {
-      display: block;
-    }
-    
-    /* 页面1: image1动画 */
-    #page1 {
-      background: white;
-      overflow: hidden;
-    }
-    
-    #image1 {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0%;
-      height: 0%;
-      object-fit: cover;
-      animation: image1Grow 2s forwards;
-      animation-delay: 0.5s;
-    }
-    
-    @keyframes image1Grow {
-      0% {
-        width: 0%;
-        height: 0%;
-        bottom: 0;
-        left: 0;
-      }
-      100% {
-        width: 100%;
-        height: 100%;
-        bottom: 0;
-        left: 0;
-      }
-    }
-    
-    #image3 {
-      position: absolute;
-      right: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 60px;
-      height: 60px;
-      opacity: 0;
-      animation: fadeIn 0.5s forwards;
-      animation-delay: 2.5s;
-    }
-    
-    /* 页面2: loading动画 */
-    #page2 {
-      background: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .loading-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 5px;
-      width: 300px;
-      height: 200px;
-      margin-bottom: 30px;
-    }
-    
-    .head-image {
-      width: 30px;
-      height: 30px;
-      opacity: 0;
-      animation: popIn 0.3s forwards;
-    }
-    
-    @keyframes popIn {
-      0% {
-        opacity: 0;
-        transform: scale(0.5);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-    
-    .loading-text {
-      font-size: 28px;
-      font-weight: bold;
-      color: #333;
-      letter-spacing: 5px;
-    }
-    
-    /* 页面3: image2动画 */
-    #page3 {
-      background: white;
-      overflow: hidden;
-    }
-    
-    #image2 {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 0%;
-      height: 100%;
-      object-fit: cover;
-      animation: image2Slide 2s forwards;
-      animation-delay: 0.5s;
-    }
-    
-    @keyframes image2Slide {
-      0% {
-        width: 0%;
-      }
-      100% {
-        width: 100%;
-      }
-    }
-    
-    /* 页面4: xD页面 */
-    #page4 {
-      background: black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .xd-text {
-      color: white;
-      font-size: 120px;
-      font-weight: bold;
-      font-family: monospace;
-    }
-    
-    /* 页面5: 评分页面 */
-    #page5 {
-      background: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    
-    .rating-title {
-      font-size: 32px;
-      color: #333;
-      margin-bottom: 40px;
-      text-align: center;
-    }
-    
-    .stars-container {
-      display: flex;
-      gap: 15px;
-      margin-bottom: 40px;
-    }
-    
-    .star {
-      font-size: 60px;
-      color: #ddd;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      user-select: none;
-    }
-    
-    .star:hover {
-      transform: scale(1.2);
-    }
-    
-    .star.selected {
-      color: #ffd700;
-    }
-    
-    #submitRating {
-      padding: 12px 40px;
-      font-size: 18px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    
-    #submitRating:hover {
-      background: #45a049;
-    }
-    
-    #thankYouMessage {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      text-align: center;
-      line-height: 1.6;
-      z-index: 100;
-      display: none;
-    }
-    
-    /* 气泡动画页面 */
-    .bubble-stage {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: none;
-      background: #000;
-    }
-    
-    .bubble-stage.active {
-      display: block;
-    }
-    
-    .cover-img, .bg-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    
-    .cover-img {
-      z-index: 10;
-      transition: opacity .8s ease;
-      opacity: 1;
-    }
-    
-    .bg-img {
-      z-index: 1;
-      opacity: 0;
-      transition: opacity .8s ease;
-    }
-    
-    .bg-img.visible {
-      opacity: 1;
-      z-index: 2;
-    }
-    
-    .overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.2));
-      z-index: 3;
-      opacity: 0;
-      transition: opacity .8s ease;
-    }
-    
-    .overlay.visible {
-      opacity: 1;
-    }
-    
-    .bubble-wrap {
-      position: absolute;
-      z-index: 5;
-      inset: 0;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      padding: 6vh 6vw;
-      pointer-events: none;
-    }
-    
-    .bubble {
-      max-width: 92%;
-      padding: 14px 16px;
-      border-radius: 18px;
-      margin: 8px 0;
-      box-shadow: var(--shadow);
-      font-size: clamp(16px,4.2vw,20px);
-      line-height: 1.25;
-      color: var(--text-color);
-      opacity: 0;
-      transform: translateY(10px) scale(.99);
-      transition: opacity .5s ease, transform .5s ease;
-      pointer-events: auto;
-      backdrop-filter: blur(2px);
-    }
-    
-    .bubble.show {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-    
-    .bubble.white {
-      background: var(--bubble-white);
-    }
-    
-    .bubble.yellow {
-      background: var(--bubble-yellow);
-    }
-    
-    .credit {
-      position: absolute;
-      top: 10px;
-      left: 12px;
-      z-index: 6;
-      color: #fff;
-      font-size: 13px;
-      opacity: .9;
-    }
-    
-    @keyframes fadeIn {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Birthday Animation</title>
+<style>
+html, body {
+  margin: 0; padding: 0; overflow: hidden;
+  font-family: sans-serif; height: 100%; width: 100%; background-color: white;
+}
+
+.center-screen {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center; font-size: 24px; color: black;
+}
+
+.screen {
+  display: none;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+}
+
+#rotateScreen { display: flex; align-items: center; justify-content: center; }
+
+#image2Screen { background-color:white; }
+#image2Screen img {
+  position:absolute; bottom:0; left:0;
+  opacity:0; transform: translate(-50%,50%) scale(0.8);
+  transition: all 3s ease;
+  max-width:80vw; max-height:80vh;
+}
+
+#loadingScreen { background-color:white; }
+
+.dot { width:20px; height:20px; position:absolute; opacity:0; transition:opacity 0.2s ease; }
+
+#arrowScreen img {
+  position:absolute; right:10%; top:50%; transform:translateY(-50%);
+  opacity:0; transition:opacity 2s ease;
+  max-width:10vw; max-height:10vh;
+}
+
+#image1Screen {
+  background-color:white; background-size:cover; background-position:center;
+}
+
+.bubble {
+  display:inline-block; margin:1vh 0; padding:1vh 2vw;
+  background-color: rgba(255,255,0,0.9); color:black; border-radius:15px;
+  font-size:2vh; position:absolute; opacity:0; transform:translateY(2vh);
+  transition: all 0.8s ease;
+}
+
+#finalScreen { background:black; color:white; text-align:center; }
+#stars { margin-top:2vh; font-size:4vh; cursor:pointer; }
+.star { display:inline-block; transition: transform 0.2s ease; }
+.star:hover { transform: scale(1.2); }
+</style>
 </head>
 <body>
-  <!-- 旋转提示 -->
-  <div id="rotatePrompt">
-    <div style="font-size: 32px; margin-bottom: 20px;">📱</div>
-    <div>Please rotate your phone</div>
-    <div style="font-size: 16px; margin-top: 10px; font-weight: normal; color: #666;">
-      (横屏以获得最佳体验)
-    </div>
-  </div>
-  
-  <!-- 主横屏容器 -->
-  <div class="landscape-container" id="mainContainer">
-    <!-- 页面1: image1动画 -->
-    <div class="page active" id="page1">
-      < img id="image1" src="image1.jpg" alt="image1">
-      < img id="image3" src="image3.png" alt="arrow">
-    </div>
-    
-    <!-- 页面2: loading动画 -->
-    <div class="page" id="page2">
-      <div class="loading-container" id="loadingContainer">
-        <!-- image4头像将在这里动态生成 -->
-      </div>
-      <div class="loading-text">LOADING...</div>
-    </div>
-    
-    <!-- 页面3: image2动画 -->
-    <div class="page" id="page3">
-      < img id="image2" src="image2.jpg" alt="image2">
-    </div>
-    
-    <!-- 页面4: xD页面 -->
-    <div class="page" id="page4">
-      <div class="xd-text">xD</div>
-    </div>
-    
-    <!-- 页面5: 评分页面 -->
-    <div class="page" id="page5">
-      <div class="rating-title">请为这次体验评分</div>
-      <div class="stars-container">
-        <div class="star" data-rating="1">⭐</div>
-        <div class="star" data-rating="2">⭐</div>
-        <div class="star" data-rating="3">⭐</div>
-        <div class="star" data-rating="4">⭐</div>
-        <div class="star" data-rating="5">⭐</div>
-      </div>
-      <button id="submitRating">提交评分</button>
-    </div>
-    
-    <!-- 感谢信息 -->
-    <div id="thankYouMessage">
-      <div>Thanks for your five stars</div>
-      <div style="font-size: 22px; margin-top: 20px;">
-        (knew you would do this xD)
-      </div>
-    </div>
-    
-    <!-- 原气泡动画页面 -->
-    <div class="bubble-stage" id="bubbleStage">
-      < img class="cover-img" id="coverImg" src="image2.jpg" alt="cover">
-      < img class="bg-img" id="bgImg" src="image1.jpg" alt="background">
-      <div class="overlay" id="overlay"></div>
-      <div class="bubble-wrap" id="bubbleWrap" aria-hidden="true">
-        <div class="bubble white" id="b1">Heyyy Ahmed, happy birthday to you!🥳</div>
-        <div class="bubble yellow" id="b2">If I could give you something today, it would be a quiet moment where nothing hurts and presses you</div>
-        <div class="bubble white" id="b3">I see how much you're carrying, and I respect you for that!</div>
-        <div class="bubble yellow" id="b4">I hope this year brings you more ease so that you can breathe. 🫂</div>
-        <div class="bubble white" id="b5">Remember! You can always be yourself with me! Lots of love!🥰</div>
-      </div>
-      <div class="credit">Made with care 🌙</div>
-    </div>
-  </div>
-  
-  <script>
-    (function() {
-      // 首先显示旋转提示
-      const rotatePrompt = document.getElementById('rotatePrompt');
-      const mainContainer = document.getElementById('mainContainer');
-      const pages = document.querySelectorAll('.page');
-      const bubbleStage = document.getElementById('bubbleStage');
-      
-      let currentPage = 0;
-      let selectedRating = 0;
-      
-      // 3秒后隐藏旋转提示，显示横屏内容
-      setTimeout(() => {
-        rotatePrompt.style.opacity = '0';
-        setTimeout(() => {
-          rotatePrompt.style.display = 'none';
-          mainContainer.style.display = 'block';
-          
-          // 开始页面1的动画
-          startPageSequence();
-        }, 500);
-      }, 3000);
-      
-      // 页面序列控制
-      function startPageSequence() {
-        // 页面1: image1动画 (3秒)
-        setTimeout(() => {
-          // 切换到页面2: loading
-          switchPage(1);
-          createLoadingAnimation();
-        }, 3000);
-        
-        // 页面2: loading动画 (5秒)
-        setTimeout(() => {
-          // 切换到页面3: image2动画
-          switchPage(2);
-        }, 8000);
-        
-        // 页面3: image2动画 (3秒)
-        setTimeout(() => {
-          // 切换到页面4: xD页面
-          switchPage(3);
-        }, 11000);
-        
-        // 页面4: xD页面 (2秒)
-        setTimeout(() => {
-          // 切换到页面5: 评分页面
-          switchPage(4);
-        }, 13000);
-      }
-      
-      // 切换页面函数
-      function switchPage(pageIndex) {
-        pages.forEach((page, index) => {
-          if (index === pageIndex) {
-            page.classList.add('active');
-          } else {
-            page.classList.remove('active');
-          }
-        });
-        currentPage = pageIndex;
-      }
 
-           // 创建loading动画
-      function createLoadingAnimation() {
-        const loadingContainer = document.getElementById('loadingContainer');
-        loadingContainer.innerHTML = '';
-        
-        // 创建"LOADING"字母的头像排列
-        const letters = [
-          ['L','O','A','D','I','N','G'],
-          ['.','.','.','.','.','.','.']
-        ];
-        
-        let delay = 0;
-        
-        letters.forEach((row, rowIndex) => {
-          const rowDiv = document.createElement('div');
-          rowDiv.style.display = 'flex';
-          rowDiv.style.gap = '5px';
-          rowDiv.style.marginBottom = '10px';
-          
-          row.forEach((letter, colIndex) => {
-            const img = document.createElement('img');
-            img.src = 'image4.png';
-            img.className = 'head-image';
-            img.alt = letter;
-            img.title = letter;
-            img.style.width = rowIndex === 0 ? '30px' : '15px';
-            img.style.height = rowIndex === 0 ? '30px' : '15px';
-            img.style.animationDelay = `${delay}s`;
-            
-            rowDiv.appendChild(img);
-            delay += 0.1;
-          });
-          
-          loadingContainer.appendChild(rowDiv);
-        });
-      }
-      
-      // 评分功能
-      const stars = document.querySelectorAll('.star');
-      const submitButton = document.getElementById('submitRating');
-      const thankYouMessage = document.getElementById('thankYouMessage');
-      
-      stars.forEach(star => {
-        star.addEventListener('click', function() {
-          const rating = parseInt(this.getAttribute('data-rating'));
-          selectedRating = rating;
-          
-          // 更新星星显示
-          stars.forEach((s, index) => {
-            if (index < rating) {
-              s.classList.add('selected');
-            } else {
-              s.classList.remove('selected');
-            }
-          });
-        });
-      });
-      
-      submitButton.addEventListener('click', function() {
-        if (selectedRating === 0) {
-          alert('请先选择评分');
-          return;
-        }
-        
-        if (selectedRating === 5) {
-          // 显示感谢信息
-          thankYouMessage.style.display = 'flex';
-          
-          // 3秒后显示气泡动画页面
-          setTimeout(() => {
-            thankYouMessage.style.display = 'none';
-            bubbleStage.classList.add('active');
-            startBubbleAnimation();
-          }, 3000);
-        } else {
-          // 其他评分显示简单感谢
-          alert(`感谢您的${selectedRating}星评分！`);
-          // 3秒后显示气泡动画页面
-          setTimeout(() => {
-            bubbleStage.classList.add('active');
-            startBubbleAnimation();
-          }, 1000);
+<div id="rotateScreen" class="screen center-screen">please rotate your phone📱</div>
+<div id="image2Screen" class="screen">< img src="image2.jpg" id="image2"></div>
+<div id="loadingScreen" class="screen"></div>
+<div id="arrowScreen" class="screen">< img src="image3.png" id="arrow"></div>
+<div id="image1Screen" class="screen"></div>
+<div id="finalScreen" class="screen">
+  <div id="finalText" style="font-size:8vh;margin-top:40%;">xD</div>
+  <div style="font-size:2.5vh;margin-top:2vh;">please rate</div>
+  <div id="stars">
+    <span class="star" data-index="1">☆</span>
+    <span class="star" data-index="2">☆</span>
+    <span class="star" data-index="3">☆</span>
+    <span class="star" data-index="4">☆</span>
+    <span class="star" data-index="5">☆</span>
+  </div>
+</div>
+
+<script>
+// 判断是否手机设备
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+// 开始动画入口
+if(isMobile){
+  document.getElementById('rotateScreen').style.display='flex';
+  setTimeout(()=>{ document.getElementById('rotateScreen').style.display='none'; showImage2(); },3000);
+}else{
+  showImage2();
+}
+
+// Step 2: image2
+function showImage2(){
+  const screen = document.getElementById('image2Screen');
+  const img = document.getElementById('image2');
+  screen.style.display='block';
+  img.onload = ()=>{ requestAnimationFrame(()=>{ img.style.opacity=1; img.style.transform='translate(0,0) scale(1)'; }); setTimeout(showLoadingScreen,5000);}
+}
+
+// Step 3: Loading with adaptive dot matrix
+function showLoadingScreen(){
+  document.getElementById('image2Screen').style.display='none';
+  const screen = document.getElementById('loadingScreen');
+  screen.style.display='block';
+
+  // 字母模板
+  const letters = {
+    L:[[1,0,0],[1,0,0],[1,0,0],[1,1,1]],
+    O:[[0,1,0],[1,0,1],[1,0,1],[0,1,0]],
+    A:[[0,1,0],[1,0,1],[1,1,1],[1,0,1]],
+    D:[[1,1,0],[1,0,1],[1,0,1],[1,1,0]],
+    I:[[1],[1],[1],[1]],
+    N:[[1,0,1],[1,1,1],[1,0,1],[1,0,1]],
+    G:[[0,1,1],[1,0,0],[1,0,1],[0,1,1]],
+    '.':[[1]]
+  };
+
+  const text="LOADING...";
+  const dotSize=Math.min(window.innerWidth,window.innerHeight)*0.03;
+  const spacing=dotSize*0.2;
+  let xOffset=window.innerWidth*0.05;
+  const yOffset=window.innerHeight*0.3;
+
+  let allDots=[];
+
+  text.split('').forEach(char=>{
+    const template=letters[char.toUpperCase()];
+    if(!template) return;
+    const rows=template.length, cols=template[0].length;
+    const scale=Math.min((window.innerWidth*0.9)/(cols*dotSize),1);
+    template.forEach((row,rowIndex)=>{
+      row.forEach((cell,colIndex)=>{
+        if(cell){
+          const dot=document.createElement('img');
+          dot.src="image4.png"; dot.className='dot';
+          dot.style.width=(dotSize*scale)+'px';
+          dot.style.height=(dotSize*scale)+'px';
+          dot.style.left = (xOffset + colIndex*(dotSize*scale + spacing))+'px';
+          dot.style.top = (yOffset + rowIndex*(dotSize*scale + spacing))+'px';
+          screen.appendChild(dot);
+          allDots.push(dot);
         }
       });
-      
-      // 原气泡动画
-      function startBubbleAnimation() {
-        const coverImg = document.getElementById('coverImg');
-        const bgImg = document.getElementById('bgImg');
-        const overlay = document.getElementById('overlay');
-        const bubbles = [...document.querySelectorAll('.bubble')];
-        
-        // 原代码的动画逻辑
-        function switchToBackground() {
-          coverImg.style.opacity = '0';
-          bgImg.classList.add('visible');
-          overlay.classList.add('visible');
-          
-          let i = 0;
-          function showNext() {
-            if (i >= bubbles.length) return;
-            const el = bubbles[i];
-            el.classList.add('show');
-            
-            setTimeout(() => {
-              if (i < bubbles.length - 1) {
-                el.classList.remove('show');
-              }
-              i++;
-              setTimeout(showNext, 200);
-            }, 4000); // 每个气泡显示4秒
-          }
-          
-          setTimeout(showNext, 400);
-        }
-        
-        // 5秒后开始气泡动画
-        setTimeout(switchToBackground, 5000);
-        
-        // 点击跳过
-        coverImg.addEventListener('click', switchToBackground, { passive: true });
-        
-        // 禁止拖拽
-        [coverImg, bgImg].forEach(img => {
-          img.ondragstart = () => false;
-        });
-      }
-    })();
-  </script>
+    });
+    xOffset += cols*(dotSize + spacing) + dotSize;
+  });
+
+  let idx=0, repeat=0;
+  const interval=setInterval(()=>{
+    if(idx<allDots.length){ allDots[idx].style.opacity=1; idx++; }
+    else{ repeat++; if(repeat<2){ idx=0; allDots.forEach(d=>d.style.opacity=0); } else{ clearInterval(interval); showArrowScreen(); } }
+  },200);
+}
+
+// Step 4: arrow
+function showArrowScreen(){
+  document.getElementById('loadingScreen').style.display='none';
+  const screen=document.getElementById('arrowScreen');
+  const arrow=document.getElementById('arrow');
+  screen.style.display='block';
+  requestAnimationFrame(()=>{ arrow.style.opacity=1; });
+  setTimeout(()=>{ arrow.style.opacity=0; setTimeout(showImage1Screen,2000); },2000);
+}
+
+// Step 5: image1 + birthday
+function showImage1Screen(){
+  document.getElementById('arrowScreen').style.display='none';
+  const screen=document.getElementById('image1Screen');
+  screen.style.display='block';
+  screen.style.backgroundImage='url("image1.jpg")';
+
+  const texts=[
+    "Heyyy Ahmed, happy birthday to you!🥳",
+    "If I could give you something today, it would be a quiet moment where nothing hurts and presses you",
+    "I see how much you’re carrying, and I respect you for that!",
+    "I hope this year brings you more ease so that you can breathe. 🫂",
+    "Remember! You can always be yourself with me! Lots of love!🥰"
+  ];
+
+  let index=0;
+  function showNext(){
+    if(index<texts.length){
+      const div=document.createElement('div');
+      div.className='bubble'; div.textContent=texts[index];
+      div.style.left='10%'; div.style.bottom=(20+index*12)+'%';
+      screen.appendChild(div);
+      requestAnimationFrame(()=>{ div.style.opacity=1; div.style.transform='translateY(0)'; });
+      index++; setTimeout(showNext,800);
+    }else{ setTimeout(showFinalScreen,3000); }
+  }
+  showNext();
+}
+
+// Step 6: final screen
+function showFinalScreen(){
+  document.getElementById('image1Screen').style.display='none';
+  const screen=document.getElementById('finalScreen');
+  screen.style.display='block';
+  const stars=document.querySelectorAll('.star');
+  stars.forEach(star=>{
+    star.addEventListener('click',()=>{
+      const index=parseInt(star.dataset.index);
+      stars.forEach((s,i)=>s.textContent=i<index?'⭐':'☆');
+      setTimeout(()=>{ screen.innerHTML=`<div style="color:white;text-align:center;margin-top:40%;">
+      thanks for your 5 star<br>
+      （knew you would do this xD love you looots<br><br>
+      jingjingjing6<br>
+      https://github.com/jingjingjing6/Hbd2aa10</div>`; },500);
+    });
+  });
+}
+</script>
+
 </body>
 </html>
