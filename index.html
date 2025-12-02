@@ -2,132 +2,487 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
 <title>Happy Birthday — Ahmed</title>
 <style>
-  :root{
-    --bg-color:#000;
+  /* === Reset & root === */
+  :root {
+    --white: #fff;
+    --black: #000;
+    --bg-white: #fff;
+    --bg-black: #000;
+    --text-black: #111;
+    --text-white: #fff;
     --bubble-white: rgba(255,255,255,0.95);
     --bubble-yellow: rgba(255,230,120,0.95);
-    --text-color:#111;
     --shadow: 0 6px 18px rgba(0,0,0,0.45);
     --font-sans: "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --font-mono: monospace;
   }
-  html,body{height:100%;margin:0;background:var(--bg-color);font-family:var(--font-sans);}
-  .stage{position:relative;height:100vh;width:100vw;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-  /* fullscreen images */
-  .cover-img, .bg-img{
-    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    -webkit-user-select:none;user-select:none;
+  html, body {
+    margin:0; padding:0;
+    height:100%;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
   }
-  .cover-img{z-index:10;transition:opacity .8s ease;opacity:1;}
-  .bg-img{z-index:1;opacity:0;transition:opacity .8s ease;}
-  .bg-img.visible{opacity:1;z-index:2;}
-
-  /* overlay to darken background for readability */
-  .overlay{
-    position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.45), rgba(0,0,0,0.2));z-index:3;opacity:0;transition:opacity .8s ease;
+  body {
+    background: var(--bg-white);
+    color: var(--text-black);
   }
-  .overlay.visible{opacity:1;}
-
-  /* bubble container */
-  .bubble-wrap{position:absolute;z-index:5;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:6vh 6vw;pointer-events:none;}
-  .bubble{
-    max-width:92%;
-    padding:14px 16px;
-    border-radius:18px;
-    margin:8px 0;
-    box-shadow:var(--shadow);
-    font-size:clamp(16px,4.2vw,20px);
-    line-height:1.25;
-    color:var(--text-color);
-    opacity:0; transform:translateY(10px) scale(.99);
-    transition:opacity .5s ease, transform .5s ease;
-    pointer-events:auto;
-    backdrop-filter: blur(2px);
+  img {
+    -webkit-user-select:none;
+    user-select:none;
+    -webkit-touch-callout:none;
+    pointer-events:none;
+    user-drag:none;
+    -webkit-user-drag:none;
+    display:block;
   }
-  .bubble.show{opacity:1; transform:translateY(0) scale(1);}
-  .bubble.white{background: var(--bubble-white);}
-  .bubble.yellow{background: var(--bubble-yellow);}
+  /* Disable pinch zoom */
+  @viewport {
+    zoom: 1.0;
+  }
+  @-ms-viewport {
+    width: device-width;
+  }
 
-  /* small top-left credit (optional) */
-  .credit{position:absolute;top:10px;left:12px;z-index:6;color:#fff;font-size:13px;opacity:.9;}
+  /* ==== Horiz screen forced on mobile ==== */
+  body, html {
+    touch-action: none;
+  }
+  #landscape-warning {
+    position: fixed;
+    inset:0;
+    background: var(--bg-black);
+    color: var(--text-white);
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  #landscape-warning.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* We rotate the main #app container on portrait mobiles */
+  #app {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-white);
+    transition: background 0.3s ease;
+  }
+  /* on portrait phones, rotate app -90deg to simulate horizontal */
+  @media (orientation: portrait) and (max-width: 768px) {
+    #app {
+      width: 100vh;
+      height: 100vw;
+      transform: rotate(-90deg) translateX(calc(-100vh + 100vw));
+      transform-origin: top left;
+      position: absolute;
+      top: 0; left: 0;
+      background: var(--bg-white);
+    }
+  }
 
-  /* make it friendly on very short screens */
-  @media (max-height:500px){
-    .bubble-wrap{padding:4vh 4vw;align-items:center;}
+  /* === Common fade in/out animation === */
+  .fade-in {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transition: opacity 1s ease;
+  }
+  .fade-out {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 1s ease;
+  }
+  .hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* === Sections: full screen flex container === */
+  section {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+  }
+  section.active {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 1s ease;
+  }
+
+  /* ==== 0 Landscape Warning ==== */
+  #landscape-warning {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  /* ==== 1 image2 section ==== */
+  #image2-section {
+    background: var(--bg-white);
+  }
+  #image2-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* we will mask fade from left-bottom to right-top with CSS mask-image */
+    mask-image: linear-gradient(135deg, transparent 0%, black 100%);
+    -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
+    animation: fadeInDiagonal 5s forwards;
+  }
+  @keyframes fadeInDiagonal {
+    0% {
+      mask-image: linear-gradient(135deg, transparent 0%, transparent 0%);
+      -webkit-mask-image: linear-gradient(135deg, transparent 0%, transparent 0%);
+      opacity: 0;
+    }
+    100% {
+      mask-image: linear-gradient(135deg, transparent 0%, black 100%);
+      -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
+      opacity: 1;
+    }
+  }
+
+  /* ==== 2 image3 section ==== */
+  #image3-section {
+    background: var(--bg-white);
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  #image3-section img {
+    max-height: 80vh;
+    max-width: 25vw;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 2s ease;
+  }
+  #image3-section img.visible {
+    opacity: 1;
+  }
+
+  /* ==== 3 loading section ==== */
+  #loading-section {
+    background: var(--bg-white);
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-auto-rows: 40px;
+    gap: 4px 6px;
+    justify-content: center;
+    align-content: center;
+    padding: 1rem;
+    max-width: 320px;
+  }
+  .loading-img {
+    width: 32px;
+    height: 40px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .loading-img.visible {
+    opacity: 1;
+  }
+
+  /* ==== 4 image1 section ==== */
+  #image1-section {
+    background: var(--bg-white);
+    position: relative;
+  }
+  #image1-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mask-image: linear-gradient(135deg, transparent 0%, black 100%);
+    -webkit-mask-image: linear-gradient(135deg, transparent 0%, black 100%);
+    animation: fadeInDiagonal 4s forwards;
+  }
+
+  /* ==== 5 bubbles section ==== */
+  #bubbles-section {
+    position: relative;
+    background: var(--bg-white);
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-left: 50vw;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 45vw;
+    margin-left: auto;
+  }
+  .bubble {
+    background: var(--bubble-white);
+    box-shadow: var(--shadow);
+    border-radius: 18px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    line-height: 1.3;
+    color: var(--text-black);
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .bubble.yellow {
+    background: var(--bubble-yellow);
+  }
+  .bubble.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* ==== 6 xD section ==== */
+  #xd-section {
+    background: var(--bg-black);
+    color: var(--text-white);
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 12vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  #xd-section .xd-text {
+    user-select:none;
+  }
+  #xd-section .rate-text {
+    margin-top: 1rem;
+    font-size: 2rem;
+    font-weight: 600;
+  }
+  /* ==== 7 rating stars ==== */
+  #rating {
+    margin-top: 1rem;
+    display: flex;
+    gap: 10px;
+  }
+  .star {
+    font-size: 3rem;
+    cursor: pointer;
+    color: #444;
+    user-select:none;
+    transition: color 0.3s ease;
+  }
+  .star.hover, .star.selected {
+    color: gold;
+    text-shadow: 0 0 5px #ffcc33;
+  }
+  /* ==== 8 thank you section ==== */
+  #thankyou-section {
+    position: absolute;
+    inset:0;
+    background: var(--bg-black);
+    color: var(--text-white);
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    text-align: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+  }
+  #thankyou-section.visible {
+    opacity: 1;
+    pointer-events: auto;
   }
 </style>
 </head>
 <body>
-  <div class="stage">
-    <!-- 第一张先显示（image2） -->
-    < img class="cover-img" id="coverImg" src="image2.jpg" alt="cover">
-    <!-- 之后切成背景（image1） -->
-    < img class="bg-img" id="bgImg" src="image1.jpg" alt="background">
-    <div class="overlay" id="overlay"></div>
 
-    <div class="bubble-wrap" id="bubbleWrap" aria-hidden="true">
-      <div class="bubble white" id="b1">Heyyy Ahmed, happy birthday to you!🥳</div>
-      <div class="bubble yellow" id="b2">If I could give you something today, it would be a quiet moment where nothing hurts and presses you</div>
-      <div class="bubble white" id="b3">I see how much you’re carrying, and I respect you for that!</div>
-      <div class="bubble yellow" id="b4">I hope this year brings you more ease so that you can breathe. 🫂</div>
-      <div class="bubble white" id="b5">Remember! You can always be yourself with me! Lots of love!🥰</div>
+<div id="landscape-warning" role="alert" aria-live="assertive">
+  Please rotate your device to landscape mode for the best experience.
+</div>
+
+<div id="app">
+
+  <!-- 0 Landscape Warning managed by JS -->
+
+  <!-- 1 image2 section -->
+  <section id="image2-section" aria-label="Birthday cover image" role="img" aria-live="polite" aria-atomic="true">
+    <img src="image2.jpg" alt="Birthday cover" draggable="false" />
+  </section>
+
+  <!-- 2 image3 section -->
+  <section id="image3-section" aria-label="Arrow indicator" role="img" aria-live="polite" aria-atomic="true">
+    <img src="image3.png" alt="Arrow pointing right" draggable="false" />
+  </section>
+
+  <!-- 3 loading section -->
+  <section id="loading-section" aria-label="Loading animation" role="img" aria-live="polite" aria-atomic="true" style="opacity:0;pointer-events:none;">
+    <!-- 64 spots for loading... arranged as 8 columns x 8 rows grid (can be adjusted) -->
+  </section>
+
+  <!-- 4 image1 section -->
+  <section id="image1-section" aria-label="Background image" role="img" aria-live="polite" aria-atomic="true">
+    <img src="image1.jpg" alt="Background image" draggable="false" />
+  </section>
+
+  <!-- 5 bubbles section -->
+  <section id="bubbles-section" aria-live="polite" aria-atomic="true" aria-label="Messages">
+    <div class="bubble white">Heyyy Ahmed, happy birthday to you! 🥳</div>
+    <div class="bubble yellow">If I could give you something today, it would be a quiet moment where nothing hurts and presses you.</div>
+    <div class="bubble white">I see how much you’re carrying, and I respect you for that!</div>
+    <div class="bubble yellow">I hope this year brings you more ease so that you can breathe. 🫂</div>
+    <div class="bubble white">Remember! You can always be yourself with me! Lots of love! 🥰</div>
+  </section>
+
+  <!-- 6 xD section -->
+  <section id="xd-section" aria-live="polite" aria-atomic="true" hidden>
+    <div class="xd-text">xD</div>
+    <div class="rate-text">Rate</div>
+    <div id="rating" role="radiogroup" aria-label="Star rating">
+      <span class="star" role="radio" aria-checked="false" tabindex="0" data-value="1" aria-label="1 star">★</span>
+      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="2" aria-label="2 stars">★</span>
+      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="3" aria-label="3 stars">★</span>
+      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="4" aria-label="4 stars">★</span>
+      <span class="star" role="radio" aria-checked="false" tabindex="-1" data-value="5" aria-label="5 stars">★</span>
     </div>
+  </section>
 
-    <div class="credit">Made with care 🌙</div>
-  </div>
+  <!-- 8 thank you section -->
+  <section id="thankyou-section" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+    ☝🏻🤓 thanks for your 5 stars ❤️<br>
+    (knew you would do this xD)
+  </section>
+
+</div>
 
 <script>
-(function(){
-  // timing settings
-  const coverDuration = 5000; // ms for image2
-  const bubbleShowDuration = 4000; // ms per bubble
-  const coverImg = document.getElementById('coverImg');
-  const bgImg = document.getElementById('bgImg');
-  const overlay = document.getElementById('overlay');
-  const bubbles = [...document.querySelectorAll('.bubble')];
+(() => {
+  const app = document.getElementById('app');
+  const landscapeWarning = document.getElementById('landscape-warning');
 
-  // helper to show background and start bubble sequence
-  function switchToBackground(){
-    coverImg.style.opacity = '0';
-    // show bg and overlay
-    bgImg.classList.add('visible');
-    overlay.classList.add('visible');
+  // Sections
+  const sections = {
+    image2: document.getElementById('image2-section'),
+    image3: document.getElementById('image3-section'),
+    loading: document.getElementById('loading-section'),
+    image1: document.getElementById('image1-section'),
+    bubbles: document.getElementById('bubbles-section'),
+    xd: document.getElementById('xd-section'),
+    thankyou: document.getElementById('thankyou-section'),
+  };
 
-    // sequentially show each bubble
-    let i = 0;
-    function showNext(){
-      if(i>=bubbles.length) return;
-      const el = bubbles[i];
-      el.classList.add('show');
-      // hide previous one when next comes (optional)
-      setTimeout(()=>{
-        // if not last, hide it before showing next
-        if(i < bubbles.length - 1){
-          el.classList.remove('show');
-        }
-        i++;
-        // show next after small delay to get smooth transition
-        setTimeout(showNext, 200);
-      }, bubbleShowDuration);
-    }
-    // slight delay so bg settled
-    setTimeout(showNext, 400);
-  }
+  // Loading images setup for loading section
+  // "loading..." spelled out in 8x8 grid using image4.jpg tiles.
+  // We'll manually map positions for the letters l o a d i n g . . . (total 9 chars including dots)
+  // We'll create a pixel-art style "loading..." shape with image4 repeated at positions forming the letters.
 
-  // wait coverDuration then switch
-  setTimeout(switchToBackground, coverDuration);
+  const loadingText = "loading...";
+  // We'll build a simple 8x8 pixel font for each letter with approximate pattern.
+  // For brevity, I define a very simple pattern: each letter block is 5x7 grid of dots.
+  // We arrange the letters horizontally with 1 column spacing between letters.
+  // Each 'pixel' will be one image4.
 
-  // optional: allow tap to skip cover immediately
-  coverImg.addEventListener('click', () => {
-    switchToBackground();
-  }, {passive:true});
+  // We'll do a very simple pixel font (5x7) for letters l,o,a,d,i,n,g and dot.
+  // For simplicity, define pixel map for each letter (1 = show image, 0 = blank)
+  // Each letter is 5 columns x 7 rows
+  
+  const font5x7 = {
+    "l": [
+      [1,0,0,0,0],
+      [1,0,0,0,0],
+      [1,0,0,0,0],
+      [1,0,0,0,0],
+      [1,0,0,0,0],
+      [1,0,0,0,0],
+      [1,1,1,1,0],
+    ],
+    "o": [
+      [0,1,1,1,0],
+      [1,0,0,0,1],
+      [1,0,0,1,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [0,1,1,1,0],
+    ],
+    "a": [
+      [0,1,1,1,0],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [1,1,1,1,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+    ],
+    "d": [
+      [1,1,1,0,0],
+      [1,0,0,1,0],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [1,0,0,1,0],
+      [1,1,1,0,0],
+    ],
+    "i": [
+      [0,1,0,0,0],
+      [0,0,0,0,0],
+      [0,1,0,0,0],
+      [0,1,0,0,0],
+      [0,1,0,0,0],
+      [0,1,0,0,0],
+      [0,1,0,0,0],
+    ],
+    "n": [
+      [1,0,0,0,1],
+      [1,1,0,0,1],
+      [1,0,1,0,1],
+      [1,0,0,1,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+    ],
+    "g": [
+      [0,1,1,1,0],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [1,0,1,1,1],
+      [1,0,0,0,1],
+      [1,0,0,0,1],
+      [0,1,1,1,0],
+    ],
+    ".": [
+      [0,0,0,0,0],
+      [0,0,0,0,0],
+      [0,0,0,0,0],
+      [0,0,0,0,0],
+      [0,0,0,0,0],
+      [0,1,1,0,0],
+      [0,1,1,0,0],
+    ],
+  };
 
-  // make images non-draggable on mobile
-  [coverImg,bgImg].forEach(img => { img.ondragstart = () => false; });
+  // Each letter width: 5 columns, 7 rows
+  // Spacing between letters: 1 column (blank)
+  // We will generate the grid dynamically into #loading-section container.
 
-})();
-</script>
-</body>
-</html>
+  const loadingSection = sections.loading;
+
+  // Calculate total columns needed
+  const letters = loadingText.split('');
+  const letterWidth = 5;
+  const letterHeight = 7;
+  const
